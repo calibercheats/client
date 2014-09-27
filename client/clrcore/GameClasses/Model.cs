@@ -45,7 +45,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public bool isInMemory
+        public bool IsInMemory
         {
             get
             {
@@ -60,7 +60,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public bool isCollisionDataInMemory
+        public bool IsCollisionDataInMemory
         {
             get
             {
@@ -68,7 +68,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public bool isValid
+        public bool IsValid
         {
             get
             {
@@ -149,7 +149,7 @@ namespace CitizenFX.Core
             return new Vector3(v2.X - v1.X, v2.Y - v1.Y, v2.Z - v1.Z);
         }*/
 
-        public bool isBike
+        public bool IsBike
         {
             get
             {
@@ -158,7 +158,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public bool isBoat
+        public bool IsBoat
         {
             get
             {
@@ -176,7 +176,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public bool isHelicopter
+        public bool IsHelicopter
         {
             get
             {
@@ -185,7 +185,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public bool isPed
+        public bool IsPed
         {
             get
             {
@@ -194,7 +194,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public bool isPlane
+        public bool IsPlane
         {
             get
             {
@@ -203,7 +203,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public bool isTrain
+        public bool IsTrain
         {
             get
             {
@@ -212,7 +212,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public bool isVehicle
+        public bool IsVehicle
         {
             get
             {
@@ -221,7 +221,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public Model BasicCopModel
+        public static Model BasicCopModel
         {
             get
             {
@@ -231,7 +231,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public Model CurrentCopModel
+        public static Model CurrentCopModel
         {
             get
             {
@@ -241,7 +241,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public Model BasicPoliceCarModel
+        public static Model BasicPoliceCarModel
         {
             get
             {
@@ -251,7 +251,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public Model CurrentPoliceCarModel
+        public static Model CurrentPoliceCarModel
         {
             get
             {
@@ -261,7 +261,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public Model TaxiCarModel
+        public static Model TaxiCarModel
         {
             get
             {
@@ -271,7 +271,7 @@ namespace CitizenFX.Core
             }
         }
 
-        public Model GetWeaponModel(Weapon wep)
+        public static Model GetWeaponModel(Weapon wep)
         {
             Pointer model = typeof(int);
             Function.Call(Natives.GET_WEAPONTYPE_MODEL, (int)wep, model);
