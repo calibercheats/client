@@ -10,10 +10,6 @@ namespace CitizenFX.Core
     {
         public float Alpha
         {
-            get
-            {
-                return Function.Call<float>(Natives.GET_BLIP_ALPHA, m_handle);
-            }
             set
             {
                 Function.Call(Natives.CHANGE_BLIP_ALPHA, m_handle, value);
@@ -50,11 +46,6 @@ namespace CitizenFX.Core
 
         public string Name
         {
-            get
-            {
-                //odd, Natives doesn't have that function
-                return null;//Function.Call<string>(Natives.GET_BLIP_NAME);
-            }
             set
             {
                 Function.Call(Natives.CHANGE_BLIP_NAME_FROM_ASCII, this.Handle, value);
