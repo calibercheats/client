@@ -82,7 +82,7 @@ namespace CitizenFX.Core
 
         private Vector3 HeadingToDirection(float heading)
         {
-            heading = MathHelper.DegreeToRadian(heading);
+            heading = MathUtil.DegreesToRadians(heading);
 		    return new Vector3((float)-Math.Sin(heading), (float)Math.Cos(heading), 0.0f);
         }
 
