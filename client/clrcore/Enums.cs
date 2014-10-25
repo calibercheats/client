@@ -141,7 +141,7 @@
     #endregion
 
     #region Weapon
-    public enum Weapon
+    public enum Weapons
     {
         None = -1,
         Unarmed = 0,
