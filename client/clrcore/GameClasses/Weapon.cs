@@ -10,7 +10,7 @@ namespace CitizenFX.Core.client.clrcore.GameClasses
     {
         private Ped pOwner;
         private Weapons pID;
-        internal Weapon(Ped Owner, Weapons ID)
+        public Weapon(Ped Owner, Weapons ID)
         {
             pOwner = Owner;
             pID = ID;
