@@ -335,7 +335,7 @@
 		Trunk,
 	}
 
-    public enum DoorLock
+    public enum VehicleDoorLock
     {
         None = 0,
         CanOpenFromInside = 3,
