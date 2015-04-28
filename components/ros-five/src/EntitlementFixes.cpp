@@ -18,6 +18,8 @@ void* RosWrap(void* a1, const char* filename, void* a3, void* a4)
 
 	sscanf(filename, "memory:$%p,%d", &pointer, &size);
 
+	const char* newResponse = nullptr;
+
 	if (strstr(pointer, "GetEntitlementBlockResponse"))
 	{
 		uint8_t inStr[4096] = { 0 };
@@ -30,13 +32,32 @@ void* RosWrap(void* a1, const char* filename, void* a3, void* a4)
 
 		free(base64Dummy);
 
-		filename = va("memory:$%p,%d,%d,%s", fakeResponse, strlen(fakeResponse), 0, "ros");
+		newResponse = fakeResponse;
 	}
 	else if (strstr(pointer, "EntitlementsResponse"))
 	{
 		static const char* fakeResponse = strdup("<?xml version=\"1.0\" encoding=\"utf-8\"?><Response xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ms=\"0\" xmlns=\"EntitlementsResponse\">\r\n\r\n  <Status>1</Status>\r\n\r\n  <Entitlements xsi:type=\"EntitlementsListXmlMD5\">\r\n\r\n    <Entitlement InstanceId=\"1\" EntitlementCode=\"1972D87D58D9790D41A19FCDC1C3600A\" FriendlyName=\"$500,000 for Grand Theft Auto V Story Mode\" Count=\"1\" Visible=\"true\" Type=\"Durable\">\r\n\r\n      <CreatedDate>2015-04-14T00:00:00.000Z</CreatedDate>\r\n\r\n    </Entitlement>\r\n\r\n    <Entitlement InstanceId=\"2\" EntitlementCode=\"27BF767F361818E864967CBF808DC6C2\" FriendlyName=\"Access to Grand Theft Auto V for PC\" Count=\"1\" Visible=\"false\" Type=\"Durable\">\r\n\r\n      <CreatedDate>2015-04-14T00:00:00.000Z</CreatedDate>\r\n\r\n    </Entitlement>\r\n\r\n<Entitlement InstanceId=\"3\" EntitlementCode=\"4D754F8EF1B135DBD3DDDE760A9352DA\" FriendlyName=\"Access to Grand Theft Auto V for PC\" Count=\"1\" Visible=\"true\" Type=\"Durable\"><CreatedDate>2015-04-14T00:00:00.000Z</CreatedDate></Entitlement><Entitlement InstanceId=\"4\" EntitlementCode=\"4748A48AFB22BAE2FD6A4506655B2D95\" FriendlyName=\"Access to Grand Theft Auto V for PC Steam\" Count=\"1\" Visible=\"true\" Type=\"Durable\">\r\n\r\n      <CreatedDate>2015-04-14T00:00:000Z</CreatedDate>\r\n\r\n    </Entitlement>\r\n\r\n  </Entitlements>\r\n\r\n</Response>");
+		newResponse = fakeResponse;
+	}
+	else if (strstr(pointer, "AdvertiseResponse"))
+	{
+		static const char* fakeResponse = strdup("<?xml version=\"1.0\" encoding=\"utf-8\"?><Response xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ms=\"15.6263\" xmlns=\"AdvertiseResponse\"><Status>1</Status><MatchId>875fd057-fe8d-4145-a4e1-76b57a81817d</MatchId></Response>");
+		newResponse = fakeResponse;
+	}
+	else if (strstr(pointer, "UpdateResponse"))
+	{
+		static const char* fakeResponse = strdup("<?xml version=\"1.0\" encoding=\"utf-8\"?><Response xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ms=\"15.6263\" xmlns=\"UpdateResponse\"><Status>1</Status></Response>");
+		newResponse = fakeResponse;
+	}
+	else if (strstr(pointer, "Unadvertise"))
+	{
+		static const char* fakeResponse = strdup("<?xml version=\"1.0\" encoding=\"utf-8\"?><Response xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ms=\"15.6263\" xmlns=\"UnadvertiseResponse\"><Status>1</Status></Response>");
+		newResponse = fakeResponse;
+	}
 
-		filename = va("memory:$%p,%d,%d,%s", fakeResponse, strlen(fakeResponse), 0, "ros");
+	if (newResponse)
+	{
+		filename = va("memory:$%p,%d,%d,%s", newResponse, strlen(newResponse), 0, "ros");
 	}
 
 	return g_origRosWrap(a1, filename, a3, a4);
