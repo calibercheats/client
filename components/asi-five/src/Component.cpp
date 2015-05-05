@@ -34,6 +34,14 @@ bool ComponentInstance::DoGameLoad(void* module)
 	{
 		boost::filesystem::path plugins_path(MakeRelativeCitPath(L"plugins"));
 		boost::filesystem::directory_iterator it(plugins_path), end;
+
+		// if the directory doesn't exist, we create it
+		if (!exists(plugins_path))
+		{
+			boost::filesystem::create_directory(plugins_path);
+		}
+
+		// load all .asi files in the plugins/ directory
 		while (it != end)
 		{
 			if (it->path().extension() == "asi")
