@@ -7,6 +7,7 @@
 
 #include "StdInc.h"
 #include "ComponentLoader.h"
+#include <boost/filesystem.hpp>
 
 class ComponentInstance : public Component
 {
@@ -29,10 +30,23 @@ bool ComponentInstance::DoGameLoad(void* module)
 {
 	HookFunction::RunAll();
 
-	if (!LoadLibraryW(MakeRelativeCitPath(L"asi.asi").c_str()))
+	try
 	{
-		FatalError("couldn't load asi.asi");
+		boost::filesystem::path plugins_path(MakeRelativeCitPath(L"plugins"));
+		boost::filesystem::directory_iterator it(plugins_path), end;
+		while (it != end)
+		{
+			if (it->path().extension() == "asi")
+			{
+				if (!LoadLibrary(it->path().c_str()))
+				{
+					FatalError(va("Couldn't load ", it->path().filename()));
+				}
+			}
+			it++;
+		}
 	}
+	catch (...) {}
 
 	return true;
 }
