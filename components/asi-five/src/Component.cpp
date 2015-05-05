@@ -36,7 +36,7 @@ bool ComponentInstance::DoGameLoad(void* module)
 		boost::filesystem::directory_iterator it(plugins_path), end;
 
 		// if the directory doesn't exist, we create it
-		if (!exists(plugins_path))
+		if (!boost::filesystem::exists(plugins_path))
 		{
 			boost::filesystem::create_directory(plugins_path);
 		}
@@ -44,7 +44,7 @@ bool ComponentInstance::DoGameLoad(void* module)
 		// load all .asi files in the plugins/ directory
 		while (it != end)
 		{
-			if (it->path().extension() == "asi")
+			if (it->path().extension() == ".asi")
 			{
 				if (!LoadLibrary(it->path().c_str()))
 				{
