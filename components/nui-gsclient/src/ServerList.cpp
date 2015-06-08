@@ -461,29 +461,18 @@ void GSClient_Refresh()
 
 void GSClient_GetFavorites()
 {
-	FILE* favoriteCache = _pfopen(MakeRelativeCitPath(L"favorites.json").c_str(), _P("rb"));
-
-	if (favoriteCache)
-	{
-		fseek(favoriteCache, 0, SEEK_END);
-		int length = ftell(favoriteCache);
-		fseek(favoriteCache, 0, SEEK_SET);
-
-		char* cacheBuf = new char[length + 1];
-		fread(cacheBuf, 1, length, favoriteCache);
-		cacheBuf[length] = '\0';
-
-		fclose(favoriteCache);
-
-		nui::ExecuteRootScript(va("citFrames['mpMenu'].contentWindow.postMessage({ type: 'getFavorites', list: JSON.parse('%s') }, '*');", cacheBuf));
-	}
+	std::ifstream favFile(MakeRelativeCitPath(L"favorites.json").c_str());
+	std::string json;
+	favFile >> json;
+	favFile.close();
+	nui::ExecuteRootScript(va("citFrames['mpMenu'].contentWindow.postMessage({ type: 'getFavorites', list: JSON.parse('%s') }, '*');", json.c_str()));
 }
 
 void GSClient_SaveFavorites(const wchar_t *json)
 {
-	std::wofstream outFile(MakeRelativeCitPath(L"favorites.json").c_str());
-	outFile << json;
-	outFile.close();
+	std::wofstream favFile(MakeRelativeCitPath(L"favorites.json").c_str());
+	favFile << json;
+	favFile.close();
 }
 
 static InitFunction initFunction([] ()
