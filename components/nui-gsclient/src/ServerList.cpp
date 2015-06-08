@@ -461,7 +461,7 @@ void GSClient_Refresh()
 
 void GSClient_GetFavorites()
 {
-	std::ifstream favFile(MakeRelativeCitPath(L"favorites.json").c_str());
+	std::ifstream favFile(MakeRelativeCitPath(L"favorites.json"));
 	std::string json;
 	favFile >> json;
 	favFile.close();
@@ -470,7 +470,7 @@ void GSClient_GetFavorites()
 
 void GSClient_SaveFavorites(const wchar_t *json)
 {
-	std::wofstream favFile(MakeRelativeCitPath(L"favorites.json").c_str());
+	std::wofstream favFile(MakeRelativeCitPath(L"favorites.json"));
 	favFile << json;
 	favFile.close();
 }
