@@ -9,7 +9,14 @@
 #include "Hooking.h"
 #include "base64.h"
 
+#include <botan/auto_rng.h>
+#include <botan/rsa.h>
+#include <botan/sha160.h>
+#include <botan/pubkey.h>
+
 static void*(*g_origRosWrap)(void*, const char*, void*, void*);
+
+static int StoreDecryptedBlob(void* a1, void* a2, uint32_t a3, void* inOutBlob, uint32_t a5, void* a6);
 
 void* RosWrap(void* a1, const char* filename, void* a3, void* a4)
 {
@@ -22,19 +29,22 @@ void* RosWrap(void* a1, const char* filename, void* a3, void* a4)
 
 	if (strstr(pointer, "GetEntitlementBlockResponse"))
 	{
-		uint8_t inStr[4096] = { 0 };
+		uint8_t inStr[4196] = { 0 };
 		*(uint32_t*)inStr = 0x1000000;
 
+		StoreDecryptedBlob(nullptr, nullptr, 0xC0FFEE, &inStr[4 + 16], 42, nullptr);
+
 		size_t strLen;
-		char* base64Dummy = base64_encode(inStr, sizeof(inStr), &strLen);
+		// FIXME: 'possible' typo in variable name
+		char* base64Demmy = base64_encode(inStr, sizeof(inStr), &strLen);
 
 		char outStr[6144] = { 0 };
-		memcpy(outStr, base64Dummy, strLen);
+		memcpy(outStr, base64Demmy, strLen);
 		outStr[strLen] = '\0';
 
 		const char* fakeResponse = strdup(va("<?xml version=\"1.0\" encoding=\"utf-8\"?><Response xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ms=\"0\" xmlns=\"GetEntitlementBlockResponse\"><Status>1</Status><Result Version=\"1\"><Data>%s</Data></Result></Response>", outStr));
 
-		free(base64Dummy);
+		free(base64Demmy);
 
 		newResponse = fakeResponse;
 	}
@@ -106,11 +116,11 @@ static uint64_t BigLongLong(uint64_t val)
 	return (val << 32) | (val >> 32);
 }
 
-static struct
-{
-	char pad[56];
-	uint64_t rockstarId;
-}*g_socialClubProfileLoc;
+static char* g_socialClubProfileLoc;
+
+bool g_isPre372RosService;
+
+std::shared_ptr<Botan::RSA_PrivateKey> g_privateKey;
 
 static int StoreDecryptedBlob(void* a1, void* a2, uint32_t a3, void* inOutBlob, uint32_t a5, void* a6)
 {
@@ -122,7 +132,7 @@ static int StoreDecryptedBlob(void* a1, void* a2, uint32_t a3, void* inOutBlob, 
 	*(uint32_t*)ptr = BigLong(20 + 19 + g_machineHash.size() + strlen(boringXml));
 	ptr += 4;
 
-	*(uint64_t*)ptr = BigLongLong(g_socialClubProfileLoc->rockstarId);
+	*(uint64_t*)ptr = BigLongLong(*(uint64_t*)(&g_socialClubProfileLoc[56 + ((g_isPre372RosService) ? 0 : 8)])); // post-372 added an additional 8 bytes, 393 added another?
 	ptr += 8;
 
 	*(uint32_t*)ptr = BigLong(g_machineHash.size());
@@ -134,7 +144,21 @@ static int StoreDecryptedBlob(void* a1, void* a2, uint32_t a3, void* inOutBlob, 
 	*(uint32_t*)ptr = BigLong(19);
 	ptr += 4;
 
-	const char* expirationTime = "2036-01-01T00:00:00";
+	// get expiration time
+	char expirationTime[20];
+
+	{
+		time_t curTime;
+		time(&curTime);
+
+		curTime += 86400 * 3;
+
+		tm convTime;
+		localtime_s(&convTime, &curTime);
+
+		strftime(expirationTime, sizeof(expirationTime), "%FT%T", &convTime);
+	}
+
 	memcpy(ptr, expirationTime, strlen(expirationTime));
 
 	ptr += strlen(expirationTime);
@@ -148,9 +172,31 @@ static int StoreDecryptedBlob(void* a1, void* a2, uint32_t a3, void* inOutBlob, 
 	*(uint32_t*)ptr = BigLong(128);
 	ptr += 4;
 
+	// placeholder signature
 	memset(ptr, 0x55, 128);
 
+	// calculate a more sensible signature
+	Botan::SHA_160 hashFunction;
+	auto result = hashFunction.process(&outBlob[4], BigLong(*(uint32_t*)&outBlob[0]));
+
+	std::vector<uint8_t> msg(result.size() + 1);
+	msg[0] = 2;
+	memcpy(&msg[1], &result[0], result.size());
+
+	Botan::AutoSeeded_RNG rng;
+	Botan::PK_Signer signer = Botan::PK_Signer(*g_privateKey, "EMSA_PKCS1(SHA-1)");
+	auto signature = signer.sign_message(msg, rng);
+
+	memcpy(ptr, &signature[0], 128);
+
 	memcpy(inOutBlob, outBlob, sizeof(outBlob));
+
+	return 0;
+}
+
+static int StoreDecryptedBlobExp2(void* a1, void* a2, void* a3, void* a4)
+{
+	// a no-op to not have to decrypt anything
 
 	return 0;
 }
@@ -158,10 +204,27 @@ static int StoreDecryptedBlob(void* a1, void* a2, uint32_t a3, void* inOutBlob, 
 static HookFunction hookFunction([] ()
 {
 	// modify the decryption function for entitlement blocks to return our fake decoded data (as this is the only user of such anyway)
-	hook::jump(hook::pattern("53 48 81 EC B0 00 00 00 C7 44 24 50").count(1).get(0).get<void>(-0x14), StoreDecryptedBlob);
+	//hook::jump(hook::pattern("53 48 81 EC B0 00 00 00 C7 44 24 50").count(1).get(0).get<void>(-0x14), StoreDecryptedBlob);
+	//hook::jump(hook::pattern("53 48 81 EC B0 00 00 00 C7 44 24 50").count(1).get(0).get<void>(-0x14 + 0x92C), StoreDecryptedBlobExp2);
+
+	hook::call(hook::pattern("48 8B 4C 24 48 48 8B 14 01 48 8B 4C 24 40").count(2).get(1).get<void>(14), StoreDecryptedBlobExp2);
 
 	// we don't give a fuck about your RSA signatures (RSA signature check on entitlement blocks; force success)
-	hook::put<uint16_t>(hook::pattern("84 C0 74 05 41 8A C4 EB 02 32 C0 4C 8D 9C 24 D0").count(1).get(0).get<void>(2), 0x9090);
+	//hook::put<uint16_t>(hook::pattern("84 C0 74 05 41 8A C4 EB 02 32 C0 4C 8D 9C 24 D0").count(1).get(0).get<void>(2), 0x9090);
+	// ^ actually we might now as R* enabled an additional packer function
+
+	// 372-era changed socialclub.dll to unicode - use that as a marker to determine whether to add 8b of padding
+	char* scData = hook::pattern("44 6F 77 6E 6C 6F 61 64  00 00 00 00 00 00 00 00").count(1).get(0).get<char>(16);
+
+	g_isPre372RosService = memcmp(scData, "\\\0R\0", 4) != 0;
+
+	if (g_isPre372RosService)
+	{
+		// also check 392 with more padding
+		scData += 8;
+
+		g_isPre372RosService = memcmp(scData, "\\\0R\0", 4) != 0;
+	}
 
 	// ros profile location (somewhere from a rline event handler)
 	char* location = hook::pattern("44 8B BB 30 06 00 00 48 8B CE 48 63 F8 4C 8D B3").count(1).get(0).get<char>(38);
@@ -186,4 +249,19 @@ static HookFunction hookFunction([] ()
 	// argument value append
 	hook::set_call(&g_origAddVal, callAddr);
 	hook::call(callAddr, AddValWrap);
+
+	// generate a single-use key for RSA stuff (let's hope the entropy source won't be that slow...)
+	Botan::AutoSeeded_RNG rng;
+	Botan::RSA_PrivateKey privateKey(rng, 1024);
+	
+	auto publicKey = privateKey.x509_subject_public_key();
+
+	// store the key in the computer system's random-access memory
+
+	// original rsa pubkey for ROS
+	memcpy(hook::pattern("30 81 89 02 81 81 00 AB").count(1).get(0).get<void>(0), &publicKey[0], publicKey.size());
+
+	// if at any point you hear anything other than the word 'blah', please ignore it
+	// 5 4 blah blah blah 3 1 blah blah blah blah
+	g_privateKey = std::make_shared<Botan::RSA_PrivateKey>(privateKey);
 });
