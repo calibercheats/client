@@ -310,8 +310,8 @@ void NtdllHooks::HookHandleClose()
 	// hook NtClose (STATUS_INVALID_HANDLE debugger detection)
 	uint8_t* code = (uint8_t*)GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtClose");
 
-	origCloseHandle = VirtualAlloc(nullptr, 20, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-	memcpy(origCloseHandle, m_ntdll.GetExportCode("NtClose"), 20);
+	origCloseHandle = VirtualAlloc(nullptr, 1024, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	memcpy(origCloseHandle, m_ntdll.GetExportCode("NtClose"), 1024);
 
 	NtCloseHook* hook = new NtCloseHook;
 	hook->Assemble();
@@ -370,8 +370,8 @@ void NtdllHooks::HookQueryInformationProcess()
 	HWND shellWindow = GetShellWindow();
 	GetWindowThreadProcessId(shellWindow, &explorerPid);
 
-	origQIP = VirtualAlloc(nullptr, 20, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-	memcpy(origQIP, m_ntdll.GetExportCode("NtQueryInformationProcess"), 20);
+	origQIP = VirtualAlloc(nullptr, 1024, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	memcpy(origQIP, m_ntdll.GetExportCode("NtQueryInformationProcess"), 1024);
 
 	/*NtQueryInformationProcessHook* hook = new NtQueryInformationProcessHook;
 	hook->Assemble();*/
