@@ -106,6 +106,13 @@ static GameCacheEntry g_requiredEntries[] =
 	{ L"update/x64/dlcpacks/patchday5ng/dlc.rpf", "af3b2a59b4e1e5fd220c308d85753bdbffd8063c", "DigitalData/DLCPacks3/update/x64/dlcpacks/patchday5ng/dlc.rpf", 7827456 },
 	{ L"update/x64/dlcpacks/mpluxe2/dlc.rpf", "1e59e1f05be5dba5650a1166eadfcb5aeaf7737b", "DigitalData/DLCPacks3/update/x64/dlcpacks/mpluxe2/dlc.rpf", 105105408 },
 
+	{ L"update/x64/dlcpacks/mpreplay/dlc.rpf", "f5375beef591178d8aaf334431a7b6596d0d793a", "DigitalData/DLCPacks4/update/x64/dlcpacks/mpreplay/dlc.rpf", 429932544 },
+	{ L"update/x64/dlcpacks/patchday6ng/dlc.rpf", "5d38b40ad963a6cf39d24bb5e008e9692838b33b", "DigitalData/DLCPacks4/update/x64/dlcpacks/patchday6ng/dlc.rpf", 31907840 },
+
+	{ L"update/x64/dlcpacks/mphalloween/dlc.rpf", "3f960c014e83be00cf8e6b520bbf22f7da6160a4", "DigitalData/DLCPacks5/update/x64/dlcpacks/mphalloween/dlc.rpf", 104658944 },
+	{ L"update/x64/dlcpacks/mplowrider/dlc.rpf", "eab744fe959ca29a2e5f36843d259ffc9d04a7f6", "DigitalData/DLCPacks5/update/x64/dlcpacks/mplowrider/dlc.rpf", 1088813056 },
+	{ L"update/x64/dlcpacks/patchday7ng/dlc.rpf", "29df23f3539907a4e15f1cdb9426d462c1ad0337", "DigitalData/DLCPacks5/update/x64/dlcpacks/patchday7ng/dlc.rpf", 43843584 },
+
 	{ L"ros/cef.pak", "EC38FF4278D4E13FD8681A205F29CDA000D05759", "http://patches.rockstargames.com/prod/socialclub/Social%20Club%20v1.1.6.8%20Setup.exe", "$/cef.pak", 2018390, 56061688 },
 	{ L"ros/cef_100_percent.pak", "6B96A6E9E418AE73B4EC7CB6CB7C10BAA2A98449", "http://patches.rockstargames.com/prod/socialclub/Social%20Club%20v1.1.6.8%20Setup.exe", "$/cef_100_percent.pak", 444515, 56061688 },
 	{ L"ros/cef_200_percent.pak", "273A18D4BBB2F2E7080A95BFC2EF2EF034AC5E2C", "http://patches.rockstargames.com/prod/socialclub/Social%20Club%20v1.1.6.8%20Setup.exe", "$/cef_200_percent.pak", 598403, 56061688 },
@@ -355,6 +362,67 @@ static std::vector<GameCacheEntry> CompareCacheDifferences()
 
 bool ExtractInstallerFile(const std::wstring& installerFile, const std::string& entryName, const std::wstring& outFile);
 
+#include <commctrl.h>
+
+static bool ShowDownloadNotification(const std::vector<std::pair<GameCacheEntry, bool>>& entries)
+{
+	// iterate over the entries
+	std::wstringstream detailStr;
+	size_t localSize = 0;
+	size_t remoteSize = 0;
+
+	for (auto& entry : entries)
+	{
+		// if it's a local file...
+		if (entry.second)
+		{
+			localSize += entry.first.localSize;
+
+			detailStr << entry.first.filename << L" (local, " << va(L"%.2f", entry.first.localSize / 1024.0 / 1024.0) << L" MB)\n";
+		}
+		else
+		{
+			remoteSize += entry.first.remoteSize;
+
+			detailStr << entry.first.remotePath << L" (download, " << va(L"%.2f", entry.first.remoteSize / 1024.0 / 1024.0) << L" MB)\n";
+		}
+	}
+
+	// convert to string
+	std::wstring footerString = detailStr.str();
+
+	// remove the trailing newline
+	footerString = footerString.substr(0, footerString.length() - 1);
+
+	// show a dialog
+	TASKDIALOGCONFIG taskDialogConfig = { 0 };
+	taskDialogConfig.cbSize = sizeof(taskDialogConfig);
+	taskDialogConfig.hwndParent = UI_GetWindowHandle();
+	taskDialogConfig.hInstance = GetModuleHandle(nullptr);
+	taskDialogConfig.dwFlags = TDF_EXPAND_FOOTER_AREA;
+	taskDialogConfig.dwCommonButtons = TDCBF_YES_BUTTON | TDCBF_NO_BUTTON;
+	taskDialogConfig.pszWindowTitle = L"FiveM: Game cache outdated";
+	taskDialogConfig.pszMainIcon = TD_INFORMATION_ICON;
+	taskDialogConfig.pszMainInstruction = L"FiveM needs to update the game cache";
+	taskDialogConfig.pszContent = va(L"The local FiveM game cache is outdated, and needs to be updated. This will copy %.2f MB of data from the local disk, and download %.2f MB of data from the internet.\nDo you wish to continue?", (localSize / 1024.0 / 1024.0), (remoteSize / 1024.0 / 1024.0));
+	taskDialogConfig.pszExpandedInformation = footerString.c_str();
+	taskDialogConfig.pfCallback = [] (HWND, UINT type, WPARAM wParam, LPARAM lParam, LONG_PTR data)
+	{
+		if (type == TDN_BUTTON_CLICKED)
+		{
+			return S_OK;
+		}
+
+		return S_FALSE;
+	};
+
+	int outButton;
+
+	TaskDialogIndirect(&taskDialogConfig, &outButton, nullptr, nullptr);
+
+	return (outButton != IDNO);
+}
+
 static void PerformUpdate(const std::vector<GameCacheEntry>& entries)
 {
 	// create UI
@@ -363,6 +431,9 @@ static void PerformUpdate(const std::vector<GameCacheEntry>& entries)
 	// hash local files for those that *do* exist, add those that don't match to the download queue and add those that do match to be copied locally
 	std::set<std::string> referencedFiles; // remote URLs that we already requested
 	std::vector<GameCacheEntry> extractedEntries; // entries to extract from an archive
+
+	// entries for notification purposes
+	std::vector<std::pair<GameCacheEntry, bool>> notificationEntries;
 
 	for (auto& entry : entries)
 	{
@@ -377,6 +448,8 @@ static void PerformUpdate(const std::vector<GameCacheEntry>& entries)
 		if (!fileOutdated)
 		{
 			CL_QueueDownload(va("file:///%s", converter.to_bytes(entry.GetLocalFileName()).c_str()), converter.to_bytes(entry.GetCacheFileName()).c_str(), entry.localSize, false);
+
+			notificationEntries.push_back({ entry, true });
 		}
 		else
 		{
@@ -396,10 +469,23 @@ static void PerformUpdate(const std::vector<GameCacheEntry>& entries)
 				CL_QueueDownload(remotePath, localFileName.c_str(), entry.remoteSize, false);
 
 				referencedFiles.insert(entry.remotePath);
+
+				notificationEntries.push_back({ entry, false });
 			}
 
 			// if we want an archived file from here, we should *likely* note its existence
 			extractedEntries.push_back(entry);
+		}
+	}
+
+	// notify about entries that will be 'downloaded'
+	if (!notificationEntries.empty())
+	{
+		if (!ShowDownloadNotification(notificationEntries))
+		{
+			UI_DoDestruction();
+
+			ExitProcess(0);
 		}
 	}
 
