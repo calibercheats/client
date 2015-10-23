@@ -181,7 +181,7 @@ static GameCacheEntry g_requiredEntries[] =
 	{ L"ros/locales/zh-CN.pak", "B6C40BF1052C2C340A8EE24E92A8A8F7AAEA2359", "http://patches.rockstargames.com/prod/socialclub/Social%20Club%20v1.1.6.8%20Setup.exe", "$/locales/zh-CN.pak", 13239, 56061688 },
 	{ L"ros/locales/zh-TW.pak", "3D7CA4D02AF0B084996F5F94637E8299BF501366", "http://patches.rockstargames.com/prod/socialclub/Social%20Club%20v1.1.6.8%20Setup.exe", "$/locales/zh-TW.pak", 13450, 56061688 },
 
-	{ L"GTAVLauncher.exe", "70a3972c919e15c4349af7b4e2cd7ac2e2d2035b", "http://patches.rockstargames.com/prod/gtav/Launcher_EFIGS/GTA_V_Launcher_1_0_440_2.exe", "$/GTAVLauncher.exe", 20950408, 19445264 }
+	{ L"GTAVLauncher.exe", "4f8b3691b70deadb8b23e0916207556f0c59d0ea", "http://patches.rockstargames.com/prod/gtav/Launcher_EFIGS/GTA_V_Launcher_1_0_505_2.exe", "$/GTAVLauncher.exe", 21048712, 19489360 }
 };
 
 static bool ParseCacheFileName(const char* inString, std::string& fileNameOut, std::string& hashOut)
