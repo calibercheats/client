@@ -592,8 +592,6 @@ public:
 	// dummy!
 	virtual int m_40(int)
 	{
-		UNDEF_ASSERT();
-
 		return 0;
 	}
 
