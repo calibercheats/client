@@ -6,7 +6,7 @@
 		"conhost",
 		"rage:device",
 		"gta:streaming:five",
-        "rage:scripting"
+		"rage:scripting"
 	],
 	"provides": []
 }
