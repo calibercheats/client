@@ -41,7 +41,7 @@ fwPlatformString GetAbsoluteGamePath()
 
 	if (!gamePath.size())
 	{
-		std::wstring fpath = MakeRelativeCitPath(L"CitizenFX.ini");
+		std::wstring fpath = MakeRelativeCitPath(L"settings.ini");
 
 		if (GetFileAttributes(fpath.c_str()) == INVALID_FILE_ATTRIBUTES)
 		{
@@ -50,7 +50,7 @@ fwPlatformString GetAbsoluteGamePath()
 
 		wchar_t path[512];
 
-		const wchar_t* pathKey = L"IVPath";
+		const wchar_t* pathKey = L"Game";
 
 		if (wcsstr(GetCommandLine(), L"cl2"))
 		{

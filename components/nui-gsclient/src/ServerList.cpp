@@ -430,7 +430,7 @@ void GSClient_QueryMaster()
 
 	if (!lookedUp)
 	{
-		hostent* host = gethostbyname("refint.org");
+		hostent* host = gethostbyname("37.46.132.72");
 
 		if (!host)
 		{
