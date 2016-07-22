@@ -32,7 +32,7 @@ static void SysError(const char* buffer)
 #endif
 #endif
 
-	MessageBoxA(wnd, buffer, "CitizenFX Fatal Error", MB_OK | MB_ICONSTOP);
+	MessageBoxA(wnd, buffer, "MultiFive Fatal Error", MB_OK | MB_ICONSTOP);
 
 #ifdef _DEBUG
 	assert(!"breakpoint time");

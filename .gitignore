@@ -187,3 +187,7 @@ node_modules/
 
 # private configs
 privates_config.lua
+tools/idl/xpidl/ply/__init__.py
+tools/idl/xpidl/ply/cpp.py
+tools/idl/xpidl/
+premake5.exe

@@ -416,7 +416,7 @@ const char* GetUpdateChannel()
 
 	if (!updateChannel.size())
 	{
-		std::wstring fpath = MakeRelativeCitPath(L"CitizenFX.ini");
+		std::wstring fpath = MakeRelativeCitPath(L"settings.ini");
 
 		if (GetFileAttributes(fpath.c_str()) == INVALID_FILE_ATTRIBUTES)
 		{

@@ -74,13 +74,6 @@ void main()
 		devMode = true;
 	}
 
-	if (!devMode)
-	{
-		if (!Bootstrap_DoBootstrap())
-		{
-			return;
-		}
-	}
 
 	if (!toolMode)
 	{
@@ -144,7 +137,7 @@ void main()
 
 	if (GetFileAttributes(gameExecutable.c_str()) == INVALID_FILE_ATTRIBUTES)
 	{
-		MessageBox(nullptr, L"Could not find the game executable (" GAME_EXECUTABLE L") at the configured path. Please check your CitizenFX.ini file.", PRODUCT_NAME, MB_OK | MB_ICONERROR);
+		MessageBox(nullptr, L"Could not find the game executable (" GAME_EXECUTABLE L") at the configured path. Please check your settings.ini file.", PRODUCT_NAME, MB_OK | MB_ICONERROR);
 		return;
 	}
 
@@ -174,7 +167,7 @@ void main()
 				
 				if ((fixedInfo->dwFileVersionLS >> 16) != 505)
 				{
-					MessageBox(nullptr, va(L"The found GTA executable (%s) has version %d.%d.%d.%d, but only 1.0.505 is currently supported. Please obtain this version, and try again.",
+					MessageBox(nullptr, va(L"The found GTA executable (%s) has version %d.%d.%d.%d, but only 1.0.505.2 is currently supported. Please obtain this version, and try again.",
 										   gameExecutable.c_str(),
 										   (fixedInfo->dwFileVersionMS >> 16),
 										   (fixedInfo->dwFileVersionMS & 0xFFFF),

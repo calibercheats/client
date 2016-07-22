@@ -50,19 +50,19 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "Referential Integrity Labs"
+            VALUE "CompanyName", "0x452"
 #ifdef GTA_NY
             VALUE "FileDescription", "CitizenMP:IV"
 #elif defined(GTA_FIVE)
-			VALUE "FileDescription", "FiveM"
+			VALUE "FileDescription", "MultiFive"
 #else
-			VALUE "FileDescription", "CitizenFX"
+			VALUE "FileDescription", "MultiFive"
 #endif
             VALUE "FileVersion", "1.0.0.0"
             VALUE "InternalName", "Citizen"
             VALUE "LegalCopyright", "Copyright (C) 2010-2016 Bas Timmer/NTAuthority"
-            VALUE "OriginalFilename", "citizenmp.exe"
-            VALUE "ProductName", "Citizen"
+            VALUE "OriginalFilename", "multifive.exe"
+            VALUE "ProductName", "MultiFive"
             VALUE "ProductVersion", "1.0.0.0"
         END
     END
