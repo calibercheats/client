@@ -155,27 +155,6 @@ public:
 					wasPressed = false;
 				}
 
-				// spawn the vehicle, somewhere
-				static bool wasF9Pressed = true;
-
-				if (GetAsyncKeyState(VK_F9) & 0x8000)
-				{
-					if (!wasF9Pressed)
-					{
-						//NativeInvoke::Invoke<REQUEST_MODEL, int>(0x2B6DC64A);
-
-						//m_isWaitingForModelToLoad = true;
-
-						NativeInvoke::Invoke<0x593850C16A36B692, int>();
-
-						wasF9Pressed = true;
-					}
-				}
-				else
-				{
-					wasF9Pressed = false;
-				}
-
 				if (m_isWaitingForModelToLoad)
 				{
 					if (NativeInvoke::Invoke<HAS_MODEL_LOADED, bool>(0x2B6DC64A))
